@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+
+  db-master:
+    image: psodstorage/store-db
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      PGDATA: '/var/lib/postgresql/data/pgdata'
+    volumes:
+     - postgres-master:/var/lib/postgresql/data
+    networks:
+     - store-net
+
+  db-slave:
+    image: psodstorage/store-db
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      PGDATA: '/var/lib/postgresql/data/pgdata'
+      REPLICATE_FROM: 'db-master'
+    volumes:
+     - postgres-slave:/var/lib/postgresql/data
+    networks:
+     - store-net
+
+  api:
+    image: psodstorage/store-api
+    environment:
+      - "ConnectionStrings:StoreContext=Host=db-master;Database=store;Username=postgres;Password=postgres"
+    ports:
+     - '8085:80'
+    networks:
+     - store-net
+    deploy:
+      replicas: 1
+
+
+  web:
+    image: psodstorage/store-web
+    environment:
+      - "ConnectionStrings:StoreContext=Host=db-slave;Database=store;Username=postgres;Password=postgres"
+      - "ASPNETCORE_ENVIRONMENT=Development"
+    ports:
+     - '8081:80'
+    networks:
+     - store-net
+          
+networks:
+  store-net:
+
+volumes:
+  postgres-master:
+  postgres-slave:

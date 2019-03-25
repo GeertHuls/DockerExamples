@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+
+  db-master:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.postgres==master
+
+  db-slave:
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.postgres==slave
+
+  api:
+    deploy:
+      replicas: 2
+
+  web:
+    deploy:
+      replicas: 8

@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+
+  db-master:
+    build: ./database
+
+  db-slave:
+    build: ./database
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile

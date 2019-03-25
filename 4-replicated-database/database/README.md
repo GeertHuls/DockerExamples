@@ -1,0 +1,1 @@
+M2 uses Postgres 9.6 with replication
