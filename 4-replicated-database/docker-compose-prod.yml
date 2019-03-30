@@ -7,14 +7,30 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.postgres==master
+          - node.labels.postgres==master  # ensures it always runs on the same server
+                                          # sets the custom postgres label to 'master',
+                                          # which can be applied to nodes in swarm.
+                                          # if you want to make the master always runs
+                                          # on the same server, you'll need to ensure
+                                          # that only one node in the cluster has this label.
 
   db-slave:
     deploy:
-      mode: global
-      placement:
+      mode: global  # deployment is global, meaning that the service runs across
+      placement:    # every node in the cluster. More specifically, a single container
+                    # will run on each node that matches the constraints.
+                    # in this case, 'postgres' matches the 'slave' label to two cluster
+                    # nodes then there will be two slaves. One container running on each
+                    # node.
         constraints:
-          - node.labels.postgres==slave
+          - node.labels.postgres==slave # constraint where it gets to run, but in this case
+                                        # multiple slave containers are allowed.
+          # add another progress=slave label to another node if more slaves need
+          # to be added to the cluster. Docker will see that then new node matches this
+          # constraint for the global db-slave service.
+          # Docker load balances a request across containers in a service, so the web app
+          # uses a single host name for the database in the connection string.
+          # You can scale up or scale down slave by simply adding or removing node labels.
 
   api:
     deploy:
@@ -23,3 +39,19 @@ services:
   web:
     deploy:
       replicas: 8
+
+# run this by composing this docker-compose file with the 'base' compose file:
+# > docker-compose -f ./docker-compose.yml -f ./docker-compose-prod.yml config > stack.yml
+# (the config command at the end, merges the compose files.
+# the output will be captured in the stack.yml file, which will be used to run the cluster, cf blow)
+
+# apply labels to particular nodes:
+# > docker node update --label-add postgres=master <node-name-1>
+# > docker node update --label-add postgres=slave <node-name-2>
+# > docker node update --label-add postgres=slave <node-name-3>
+
+# the master db will only run on 1 node, the slave db will run on multiple nodes
+
+# run the cluster:
+# > docker stack deploy -c ./stack.yml store
+# the stack will run based on the output in the stack.yml and is named 'store'

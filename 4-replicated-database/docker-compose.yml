@@ -19,7 +19,7 @@ services:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'postgres'
       PGDATA: '/var/lib/postgresql/data/pgdata'
-      REPLICATE_FROM: 'db-master'
+      REPLICATE_FROM: 'db-master' #setup db-master host as master
     volumes:
      - postgres-slave:/var/lib/postgresql/data
     networks:
