@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  web:
+    deploy:
+      mode: global  # deploy as global service, so every container will run on every node,
+                    # but every container will use the same storage from the Azure file share.
+
+
+volumes:
+  api-consumer-cache: # this overrides the defaults in the docker-compose file
+    name: cs-api-consumer-cache
+    driver: "cloudstor:azure"
+    driver_opts:
+      share: 'api-consumer-cache' # name for the file share, this will get used for the name
+                                  # in Azure files rather than the plugin generating a random
+                                  # name.
+# to run:
+# > docker-compose -f ./docker-compose.yml -f ./docker-compose-prod.yml config > stack.yml
+
+# this will generate the stack.yml file is the original docker-compose file with the prod overrides.
+# deploy to cluster:
+# > docker stack deploy -c ./stack.yml api-consumer
+
