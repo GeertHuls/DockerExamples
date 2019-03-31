@@ -10,7 +10,7 @@ services:
 volumes:
   api-consumer-cache: # this overrides the defaults in the docker-compose file
     name: cs-api-consumer-cache
-    driver: "cloudstor:azure"
+    driver: "cloudstor:azure" # use the cloudstor plugin, each node must have the plugin installed.
     driver_opts:
       share: 'api-consumer-cache' # name for the file share, this will get used for the name
                                   # in Azure files rather than the plugin generating a random
