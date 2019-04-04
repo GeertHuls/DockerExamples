@@ -1,0 +1,70 @@
+version: '3.7'
+
+services:
+
+  db-init:  # this is the init container which bootstraps the cockroach db cluster
+            # and hosts the web ui. In a production deployment, the UI wouldn't be public.
+    image: cockroachdb/cockroach:v2.1.3 
+    hostname: "db-init"
+    command: ["start",  "--logtostderr", "--insecure", "--advertise-addr=db-init"]
+    ports:
+     - '8082:8080'
+    volumes:
+     - cockroach-init:/cockroach/cockroach-data
+    networks:
+     - store-net
+    deploy:
+      replicas: 1
+     
+  db: # the db services runs across 4 replicas, joining the init container.
+      # Both database services are using volumes without deployment constraints, so the
+      # containers can run anywhere.
+    image: cockroachdb/cockroach:v2.1.3 
+    command: ["start",  "--logtostderr", "--insecure", "--join=db-init"]    
+    volumes:
+     - cockroach:/cockroach/cockroach-data
+    networks:
+     - store-net
+    deploy:
+      replicas: 4
+
+  api:  # the api and web services haven't been changed, using the cockroach DB service as
+        # the host name in the connectionstring.
+    image: psodstorage/store-api
+    environment:
+      - "ConnectionStrings:StoreContext=Host=db;Port=26257;Database=store;Username=root"
+    ports:
+     - '8085:80'
+    networks:
+     - store-net
+    deploy:
+      replicas: 2
+
+  web:
+    image: psodstorage/store-web
+    environment:
+      - "ConnectionStrings:StoreContext=Host=db;Port=26257;Database=store;Username=root"
+    ports:
+     - '8081:80'
+    networks:
+     - store-net
+    deploy:
+      replicas: 6
+          
+networks:
+  store-net:
+
+volumes:  # the volume definitions are using the cloudstor plugin.
+          # for the init service,there is a name specified for the share.
+  cockroach-init:    
+    driver: 'cloudstor:azure'
+    driver_opts:
+      share: 'cockroach-init'
+          # the db service is using the template syntax which will create on volume
+          # for each task named after the service and task.
+  cockroach:
+    name: '{{.Service.Name}}-{{.Task.Slot}}'
+    driver: 'cloudstor:azure'
+
+# deploy stack and call it 'store':
+# > docker stack deploy -c .\docker-stack-cockroach.yml store
