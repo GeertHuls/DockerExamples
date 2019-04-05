@@ -1,0 +1,19 @@
+// the config file is stored on
+// C:\ProgramData\docker\config\daemon.json
+{
+    // Here's we all data is stored: eg: writable layers, volumes, etc...
+    "data-root": "D:\\docker-data-root",
+    "hosts":  [
+        "tcp://0.0.0.0:2376",
+        "npipe://"
+    ],
+    "insecure-registries":  [
+        "registry.local:5000"
+    ],
+
+    // certificates for secure remote access:
+    "tlsverify": true,
+    "tlscacert": "C:\\ProgramData\\docker\\certs.d\\ca.pem",
+    "tlskey": "C:\\ProgramData\\docker\\certs.d\\server-key.pem",
+    "tlscert": "C:\\ProgramData\\docker\\certs.d\\server-cert.pem"
+}

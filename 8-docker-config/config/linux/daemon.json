@@ -1,0 +1,15 @@
+// this config file lives in: /ect/docker/daemon.json
+{
+    "data-root": "/data/docker",
+    "hosts":  [
+        "tcp://0.0.0.0:2376",
+        "fd://"
+    ],
+    "insecure-registries":  [
+        "registry.local:5000"
+    ],
+    "tlsverify": true,
+    "tlscacert": "/etc/docker/certs/ca.pem",
+    "tlskey": "/etc/docker/certs/server-key.pem",
+    "tlscert": "/etc/docker/certs/server-cert.pem"
+}
