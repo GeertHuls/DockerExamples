@@ -1,0 +1,24 @@
+# this is an example of a multi stage build (multiple froms).
+# seperation of dependency resolution and compilation ends up with a lesser build cache footprint.
+FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 as builder
+
+WORKDIR /Worker
+# only copy the project file, which lists the dependencies:
+COPY Worker/Worker.csproj .
+RUN dotnet restore
+
+# next the rest of source is copied in and project is built and packaged.
+COPY /Worker .
+RUN dotnet publish -c Release -o /out Worker.csproj
+
+# this is the final stage which will generate the application image.
+# it uses a smaller base image with everything it needs to run the app.
+# app image
+FROM microsoft/dotnet:2.2-runtime-nanoserver-1809
+
+WORKDIR /app
+# the ENTRYPOINT command only is executed when the container is started.
+ENTRYPOINT ["dotnet", "Worker.dll"]
+
+# copy the compiled app into the container:
+COPY --from=builder /out .
